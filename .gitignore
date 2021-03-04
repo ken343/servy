@@ -25,3 +25,5 @@ servy-*.tar
 
 # Temporary files for e.g. tests
 /tmp
+
+Elixir.Servy.Handler.beam
