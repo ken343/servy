@@ -18,7 +18,15 @@ defmodule Servy.Handler do
 
   def route(conv) do
     # TODO: Create a new map that also has the response body:
+    route(conv, conv.method, conv.path)
+  end
+
+  def route(conv, "GET", "/whoop") do
     %{conv | resp_body: "Foxes"}
+  end
+
+  def route(conv, "GET", "/hiss") do
+    %{conv | resp_body: "cobra"}
   end
 
   def format_response(conv) do
@@ -34,14 +42,24 @@ defmodule Servy.Handler do
 
 end
 
-request = """
-GET /wildthings HTTP/1.1
+request1 = """
+GET /whoop HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
 Accept: */*
 
 """
 
-response = Servy.Handler.handle(request)
+request2 = """
+GET /hiss HTTP/1.1
+Host: example.com
+User-Agent: ExampleBrowser/1.0
+Accept: */*
 
+"""
+
+response = Servy.Handler.handle(request1)
+IO.puts response
+
+response = Servy.Handler.handle(request2)
 IO.puts response
