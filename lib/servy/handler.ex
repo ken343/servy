@@ -2,8 +2,10 @@ defmodule Servy.Handler do
   def handle(request) do
     request
     |> parse
+    |> rewrite_path
     |> log
     |> route
+    |> track
     |> format_response
   end
 
@@ -20,32 +22,41 @@ defmodule Servy.Handler do
       resp_body: "" }
   end
 
-  def log(conv), do: IO.inspect conv
-
-  def route(conv) do
-    # TODO: Create a new map that also has the response body:
-    route(conv, conv.method, conv.path)
+  def rewrite_path(%{path: "/wildlife"} = conv) do
+    %{conv | path: "/wildthings"}
   end
 
-  def route(conv, "GET", "/whoop") do
+  def rewrite_path(conv), do: conv
+
+  def log(conv), do: IO.inspect conv
+
+
+  def route(%{methd: "GET", path: "/whoop"} = conv) do
     %{conv | status: 200, resp_body: "Foxes"}
   end
 
-  def route(conv, "GET", "/whoop/" <> id) do
+  def route(%{method: "GET", path: "/whoop/" <> id} = conv) do
     %{conv | status: 200, resp_body: "Fox: #{id}"}
   end
 
-  def route(conv, "GET", "/hiss") do
+  def route(%{method: "GET", path: "/hiss"} = conv) do
     %{conv | status: 200, resp_body: "cobra"}
   end
 
-  def route(conv, "DELETE", path) do
+  def route(%{method: "DELETE", path: path} = conv) do
     %{conv | status: 200, resp_body: "Deleting #{path}..."}
   end
 
-  def route(conv, _method, path) do
+  def route(%{path: path} = conv) do
     %{conv | status: 404, resp_body: "Path #{path} does not exist!"}
   end
+
+  def track(%{status: 404, path: path} = conv) do
+      IO.puts "Warning #{path} is on the LOOSE."
+      conv
+  end
+
+  def track(conv), do: conv
 
   def format_response(conv) do
     # TODO: Use values in the map to create an HTTP response string:
@@ -109,6 +120,13 @@ User-Agent: ExampleBrowser/1.0
 Accept: */*
 """
 
+request6 = """
+GET /whaleFish HTTP/1.1
+Host: example.com
+User-Agent: ExampleBrowser/1.0
+Accept: */*
+"""
+
 response = Servy.Handler.handle(request1)
 IO.puts response
 
@@ -122,4 +140,7 @@ response = Servy.Handler.handle(request4)
 IO.puts response
 
 response = Servy.Handler.handle(request5)
+IO.puts response
+
+response = Servy.Handler.handle(request6)
 IO.puts response
