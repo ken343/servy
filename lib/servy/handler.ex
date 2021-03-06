@@ -30,13 +30,25 @@ defmodule Servy.Handler do
 
   def log(conv), do: IO.inspect conv
 
-
-  def route(%{methd: "GET", path: "/whoop"} = conv) do
+  def route(%{method: "GET", path: "/whoop"} = conv) do
     %{conv | status: 200, resp_body: "Foxes"}
   end
 
   def route(%{method: "GET", path: "/whoop/" <> id} = conv) do
     %{conv | status: 200, resp_body: "Fox: #{id}"}
+  end
+
+  def route(%{method: "GET", path: "/about"} = conv) do
+    pages_path = Path.expand("../../pages", __DIR__)
+    file = Path.join(pages_path, "about.html")
+
+    case File.read(file) do
+
+      {:ok, content} -> %{conv | status: 200, resp_body: content}
+      {:error, :enoent} -> %{conv | status: 404, resp_body: "File not founnd!"}
+      {:error, reason} -> %{conv | status: 500, resp_body: "File error #{reason}"}
+
+    end
   end
 
   def route(%{method: "GET", path: "/hiss"} = conv) do
@@ -127,6 +139,13 @@ User-Agent: ExampleBrowser/1.0
 Accept: */*
 """
 
+request7 = """
+GET /about HTTP/1.1
+Host: example.com
+User-Agent: ExampleBrowser/1.0
+Accept: */*
+"""
+
 response = Servy.Handler.handle(request1)
 IO.puts response
 
@@ -143,4 +162,7 @@ response = Servy.Handler.handle(request5)
 IO.puts response
 
 response = Servy.Handler.handle(request6)
+IO.puts response
+
+response = Servy.Handler.handle(request7)
 IO.puts response
