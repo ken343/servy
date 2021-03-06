@@ -30,6 +30,7 @@ defmodule Servy.Handler do
 
   def log(conv), do: IO.inspect conv
 
+
   def route(%{method: "GET", path: "/whoop"} = conv) do
     %{conv | status: 200, resp_body: "Foxes"}
   end
@@ -95,7 +96,7 @@ defmodule Servy.Handler do
 
 end
 
-request1 = """
+request = """
 GET /whoop HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
@@ -103,7 +104,10 @@ Accept: */*
 
 """
 
-request2 = """
+response = Servy.Handler.handle(request)
+IO.puts response
+
+request = """
 GET /hiss HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
@@ -111,58 +115,55 @@ Accept: */*
 
 """
 
-request3 = """
+response = Servy.Handler.handle(request)
+IO.puts response
+
+request = """
 GET /wags HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
 Accept: */*
 """
 
-request4 = """
+response = Servy.Handler.handle(request)
+IO.puts response
+
+request = """
 GET /whoop/elDiablo HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
 Accept: */*
 """
 
-request5 = """
+response = Servy.Handler.handle(request)
+IO.puts response
+
+request = """
 DELETE /whoop HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
 Accept: */*
 """
 
-request6 = """
+response = Servy.Handler.handle(request)
+IO.puts response
+
+request = """
 GET /whaleFish HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
 Accept: */*
 """
 
-request7 = """
+response = Servy.Handler.handle(request)
+IO.puts response
+
+request = """
 GET /about HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
 Accept: */*
 """
 
-response = Servy.Handler.handle(request1)
-IO.puts response
-
-response = Servy.Handler.handle(request2)
-IO.puts response
-
-response = Servy.Handler.handle(request3)
-IO.puts response
-
-response = Servy.Handler.handle(request4)
-IO.puts response
-
-response = Servy.Handler.handle(request5)
-IO.puts response
-
-response = Servy.Handler.handle(request6)
-IO.puts response
-
-response = Servy.Handler.handle(request7)
+response = Servy.Handler.handle(request)
 IO.puts response
