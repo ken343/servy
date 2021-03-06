@@ -1,4 +1,8 @@
 defmodule Servy.Handler do
+  import Servy.Plugins, only: [rewrite_path: 1, log: 1, track: 1]
+  import Servy.Parser, only: [parse: 1]
+  import Servy.FileHandler, only: [handle_file: 2]
+
   def handle(request) do
     request
     |> parse
@@ -9,28 +13,7 @@ defmodule Servy.Handler do
     |> format_response
   end
 
-  def parse(request) do
-    [method, path, _] =
-      request
-      |> String.split("\n")
-      |> List.first
-      |> String.split(" ")
-
-    %{method: method,
-      path: path,
-      status: nil,
-      resp_body: "" }
-  end
-
-  def rewrite_path(%{path: "/wildlife"} = conv) do
-    %{conv | path: "/wildthings"}
-  end
-
-  def rewrite_path(conv), do: conv
-
-  def log(conv), do: IO.inspect conv
-
-
+  @pages_path Path.expand("../../pages", __DIR__)
   def route(%{method: "GET", path: "/whoop"} = conv) do
     %{conv | status: 200, resp_body: "Foxes"}
   end
@@ -40,8 +23,7 @@ defmodule Servy.Handler do
   end
 
   def route(%{method: "GET", path: "/about"} = conv) do
-    pages_path = Path.expand("../../pages", __DIR__)
-    file = Path.join(pages_path, "about.html")
+    file = Path.join(@pages_path, "about.html")
 
     case File.read(file) do
 
@@ -50,6 +32,13 @@ defmodule Servy.Handler do
       {:error, reason} -> %{conv | status: 500, resp_body: "File error #{reason}"}
 
     end
+  end
+
+  def route(%{method: "GET", path: "/bears/new"} = conv) do
+    @pages_path
+    |> Path.join("form.html")
+    |> File.read
+    |> handle_file(conv)
   end
 
   def route(%{method: "GET", path: "/hiss"} = conv) do
@@ -63,13 +52,6 @@ defmodule Servy.Handler do
   def route(%{path: path} = conv) do
     %{conv | status: 404, resp_body: "Path #{path} does not exist!"}
   end
-
-  def track(%{status: 404, path: path} = conv) do
-      IO.puts "Warning #{path} is on the LOOSE."
-      conv
-  end
-
-  def track(conv), do: conv
 
   def format_response(conv) do
     # TODO: Use values in the map to create an HTTP response string:
@@ -163,6 +145,17 @@ GET /about HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
 Accept: */*
+"""
+
+response = Servy.Handler.handle(request)
+IO.puts response
+
+request = """
+GET /bears/new HTTP/1.1
+Host: example.com
+User-Agent: ExampleBrowser/1.0
+Accept: */*
+
 """
 
 response = Servy.Handler.handle(request)
