@@ -3,6 +3,8 @@ defmodule Servy.Handler do
   import Servy.Parser, only: [parse: 1]
   import Servy.FileHandler, only: [handle_file: 2]
 
+  alias Servy.Conv, as: Conv
+
   def handle(request) do
     request
     |> parse
@@ -14,15 +16,15 @@ defmodule Servy.Handler do
   end
 
   @pages_path Path.expand("../../pages", __DIR__)
-  def route(%{method: "GET", path: "/whoop"} = conv) do
+  def route(%Conv{method: "GET", path: "/whoop"} = conv) do
     %{conv | status: 200, resp_body: "Foxes"}
   end
 
-  def route(%{method: "GET", path: "/whoop/" <> id} = conv) do
+  def route(%Conv{method: "GET", path: "/whoop/" <> id} = conv) do
     %{conv | status: 200, resp_body: "Fox: #{id}"}
   end
 
-  def route(%{method: "GET", path: "/about"} = conv) do
+  def route(%Conv{method: "GET", path: "/about"} = conv) do
     file = Path.join(@pages_path, "about.html")
 
     case File.read(file) do
@@ -34,48 +36,35 @@ defmodule Servy.Handler do
     end
   end
 
-  def route(%{method: "GET", path: "/bears/new"} = conv) do
+  def route(%Conv{method: "GET", path: "/bears/new"} = conv) do
     @pages_path
     |> Path.join("form.html")
     |> File.read
     |> handle_file(conv)
   end
 
-  def route(%{method: "GET", path: "/hiss"} = conv) do
+  def route(%Conv{method: "GET", path: "/hiss"} = conv) do
     %{conv | status: 200, resp_body: "cobra"}
   end
 
-  def route(%{method: "DELETE", path: path} = conv) do
+  def route(%Conv{method: "DELETE", path: path} = conv) do
     %{conv | status: 200, resp_body: "Deleting #{path}..."}
   end
 
-  def route(%{path: path} = conv) do
+  def route(%Conv{path: path} = conv) do
     %{conv | status: 404, resp_body: "Path #{path} does not exist!"}
   end
 
-  def format_response(conv) do
+  def format_response(%Conv{} = conv) do
     # TODO: Use values in the map to create an HTTP response string:
     """
-    HTTP/1.1 #{conv.method} #{conv.status} #{status_reason(conv.status)}
+    HTTP/1.1 #{Conv.full_status(conv)}
     Content-Type: text/html
     Content-Length: #{String.length(conv.resp_body)}
 
     #{conv.resp_body}
     """
   end
-
-
-  defp status_reason(code) do
-    %{
-      200 => "OK",
-      201 => "Created",
-      401 => "Unauthorized",
-      403 => "Forbidden",
-      404 => "Not Found",
-      500 => "Internal Server Error"
-    }[code]
-  end
-
 end
 
 request = """
