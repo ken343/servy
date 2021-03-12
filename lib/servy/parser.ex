@@ -11,7 +11,7 @@ defmodule Servy.Parser do
 
     headers = parse_headers(header_lines, %{})
 
-    params = parse_params(params_string)
+    params = parse_params(headers["Content-Type"],  params_string)
 
     IO.inspect header_lines
 
@@ -24,13 +24,15 @@ defmodule Servy.Parser do
 
   end
 
-  def parse_params(params_string) do
+  def parse_params("application: x-www-form-urlencoded", params_string) do
     params_string |> String.trim |> URI.decode_query
   end
 
+  def parse_params(_, _), do: %{}
+
   def parse_headers([head | tail], headers) do
     [key, value] = String.split(head, ": ")
-    headers = Map.puts(headers, key, value)
+    headers = Map.put(headers, key, value)
     parse_headers(tail, headers)
   end
 
