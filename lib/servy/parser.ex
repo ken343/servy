@@ -24,7 +24,7 @@ defmodule Servy.Parser do
 
   end
 
-  def parse_params("application: x-www-form-urlencoded", params_string) do
+  def parse_params("application/x-www-form-urlencoded", params_string) do
     params_string |> String.trim |> URI.decode_query
   end
 
