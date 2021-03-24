@@ -45,6 +45,23 @@ defmodule Servy.Handler do
       |> handle_file(conv)
   end
 
+  def route(%Conv{ method: "GET", path: "/snapshots" } = conv) do
+    parent = self()
+
+    # Monkey way of doing it without abstraction
+    spawn(fn -> send(parent, {:result, VideoCam.get_snapshot("cam-1")}) end)
+    spawn(fn -> send(parent, {:result, VideoCam.get_snapshot("cam-2")}) end)
+    spawn(fn -> send(parent, {:result, VideoCam.get_snapshot("cam-3")}) end)
+
+    snapshot1 = receive do {:result, filename} -> filename end
+    snapshot2 = receive do {:result, filename} -> filename end
+    snapshot3 = receive do {:result, filename} -> filename end
+
+    snapshots = [snapshot1, snapshot2, snapshot3]
+
+    %{ conv | status: 200, resp_body: inspect snapshots}
+  end
+
   def route(%Conv{ method: "GET", path: "/hibernate/" <> time } = conv) do
     time |> String.to_integer |> :timer.sleep
 
